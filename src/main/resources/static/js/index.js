@@ -47,7 +47,7 @@ function login() {
             window.location.href = "/dashboard";
         })
         .catch(error => {
-            if (resultEl) resultEl.innerText = "Login failed: " + (error.message || "Unknown error");
+            if (resultEl) resultEl.innerText = "Login failed. Invalid email or password.";
             console.log("Login error:", error);
         });
 }
