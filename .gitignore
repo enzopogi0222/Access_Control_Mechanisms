@@ -38,3 +38,4 @@ data/totp-secrets.json
 ### Firebase / Google Cloud secrets (do not commit) ###
 **/firebase-service-account.json
 **/*-service-account*.json
+**/serviceAccountKey.json
