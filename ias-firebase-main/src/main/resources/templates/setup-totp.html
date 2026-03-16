@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup 2FA | IAS Firebase</title>
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/dashboard.css?v=2">
+</head>
+<body class="dashboard-body">
+    <header class="dashboard-header">
+        <div class="header-brand">
+            <h1>Setup Two-Factor Authentication</h1>
+        </div>
+        <div class="header-actions">
+            <a href="/dashboard" class="btn-logout" style="text-decoration:none;color:inherit;">Back to Dashboard</a>
+        </div>
+    </header>
+
+    <main class="dashboard-main" style="max-width: 400px; margin: 2rem auto;">
+        <section class="welcome-section">
+            <p>Scan the QR code with <strong>Google Authenticator</strong> (or any TOTP app), then enter the 6-digit code to confirm.</p>
+            <div id="setupContent" style="text-align: center;">
+                <p id="setupStatus">Loading...</p>
+                <div id="qrContainer" style="display: none;">
+                    <img id="qrImage" src="" alt="QR Code" style="margin: 1rem 0; border: 1px solid #ccc;">
+                    <p style="font-size: 12px; color: #666;">Or enter this secret manually: <code id="secretText"></code></p>
+                    <label for="confirmCode">Enter 6-digit code from app:</label>
+                    <input type="text" id="confirmCode" placeholder="000000" maxlength="6" pattern="[0-9]*" inputmode="numeric" autocomplete="one-time-code" style="width: 120px; margin: 8px auto; display: block;">
+                    <button type="button" id="confirmBtn">Confirm &amp; Enable 2FA</button>
+                </div>
+            </div>
+            <p id="setupResult" style="margin-top: 1rem; font-weight: bold;"></p>
+        </section>
+    </main>
+
+    <script>
+        (function () {
+            const statusEl = document.getElementById("setupStatus");
+            const qrContainer = document.getElementById("qrContainer");
+            const qrImage = document.getElementById("qrImage");
+            const secretText = document.getElementById("secretText");
+            const confirmCode = document.getElementById("confirmCode");
+            const confirmBtn = document.getElementById("confirmBtn");
+            const resultEl = document.getElementById("setupResult");
+
+            fetch("/api/totp/setup", { credentials: "same-origin" })
+                .then(function (res) {
+                    if (!res.ok) {
+                        if (res.status === 401) window.location.href = "/index";
+                        throw new Error("Setup failed");
+                    }
+                    return res.json();
+                })
+                .then(function (data) {
+                    statusEl.style.display = "none";
+                    qrContainer.style.display = "block";
+                    qrImage.src = data.qrImageUrl;
+                    secretText.textContent = data.secret;
+                    confirmBtn.onclick = function () {
+                        const code = confirmCode.value.trim();
+                        if (code.length !== 6) {
+                            resultEl.textContent = "Please enter the 6-digit code.";
+                            resultEl.style.color = "#c00";
+                            return;
+                        }
+                        resultEl.textContent = "";
+                        fetch("/api/totp/confirm", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            credentials: "same-origin",
+                            body: JSON.stringify({ code: code })
+                        })
+                            .then(function (r) {
+                                if (!r.ok) return r.json().then(function (d) { throw new Error(d.error || "Invalid code"); });
+                                resultEl.textContent = "2FA enabled. On next login you will need your Authenticator code.";
+                                resultEl.style.color = "#4CAF50";
+                                confirmBtn.disabled = true;
+                                setTimeout(function () { window.location.href = "/dashboard"; }, 2000);
+                            })
+                            .catch(function (e) {
+                                resultEl.textContent = e.message || "Invalid code. Try again.";
+                                resultEl.style.color = "#c00";
+                            });
+                    };
+                    confirmCode.onkeydown = function (e) {
+                        if (e.key === "Enter") confirmBtn.onclick();
+                    };
+                })
+                .catch(function () {
+                    statusEl.textContent = "Failed to load setup. Are you logged in?";
+                });
+        })();
+    </script>
+</body>
+</html>

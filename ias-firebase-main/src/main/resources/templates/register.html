@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IAS Firebase Register</title>
+
+
+  <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+
+  <link rel="stylesheet" href="/css/style.css">
+
+  <script defer src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+</head>
+<body>
+  <div class="login-box">
+    <h2>Register</h2>
+
+    <form id="registerForm">
+      <input 
+        type="email" 
+        id="email" 
+        placeholder="Email" 
+        required 
+        autocomplete="email"
+      >
+
+      <input 
+        type="password" 
+        id="password" 
+        placeholder="Password" 
+        required 
+        autocomplete="new-password"
+      >
+
+      <input 
+        type="password" 
+        id="confirmPassword" 
+        placeholder="Confirm Password" 
+        required 
+        autocomplete="new-password"
+      >
+
+      <button type="submit" id="registerBtn">Register</button>
+    </form>
+
+    <div id="result"></div>
+
+    <p>Already have an account? <a href="/index">Login here</a></p>
+  </div>
+
+  <script defer th:src="@{/js/register.js}"></script>
+</body>
+</html>

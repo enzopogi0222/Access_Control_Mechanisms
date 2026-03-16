@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IAS Firebase Login</title>
+
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script defer th:src="@{/js/index.js}"></script>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Login</h2>
+
+        <form id="loginForm">
+            <label for="email">Email:</label>
+            <input type="email" id="email" required autocomplete="email">
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" required autocomplete="current-password">
+
+            <div id="result" class="login-result" aria-live="polite"></div>
+            <button type="submit">Login</button>
+        </form>
+
+        <div id="totpStep" class="totp-step" style="display: none;">
+            <h3>Two-Factor Authentication</h3>
+            <p>Enter the 6-digit code from Google Authenticator.</p>
+            <input type="text" id="totpCode" placeholder="000000" maxlength="6" pattern="[0-9]*" inputmode="numeric" autocomplete="one-time-code">
+            <button type="button" id="verifyTotpBtn">Verify</button>
+        </div>
+    </div>
+
+  
+</body>
+</html>

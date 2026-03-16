@@ -1,0 +1,212 @@
+# Wireshark Display Filters for IAS Firebase Penetration Testing
+# Copy and paste these filters into Wireshark's display filter bar
+
+# ============================================
+# GENERAL HTTP FILTERS
+# ============================================
+
+# All HTTP traffic
+http
+
+# HTTP requests only
+http.request
+
+# HTTP responses only
+http.response
+
+# HTTP POST requests
+http.request.method == "POST"
+
+# HTTP GET requests
+http.request.method == "GET"
+
+# HTTP errors (4xx, 5xx)
+http.response.code >= 400
+
+# ============================================
+# APPLICATION-SPECIFIC FILTERS
+# ============================================
+
+# All API endpoints
+http.request.uri contains "/api/"
+
+# Login endpoint
+http.request.uri contains "/api/sessionLogin"
+
+# TOTP verification endpoint
+http.request.uri contains "/api/verifyTotp"
+
+# Secure endpoints
+http.request.uri contains "/api/secure"
+
+# TOTP setup endpoints
+http.request.uri contains "/api/totp"
+
+# Dashboard access
+http.request.uri contains "/dashboard"
+
+# Registration endpoint
+http.request.uri contains "/register"
+
+# ============================================
+# AUTHENTICATION & AUTHORIZATION
+# ============================================
+
+# Authorization headers (Bearer tokens)
+http.header contains "Authorization"
+
+# Bearer token specifically
+http.header contains "Bearer"
+
+# All cookies
+http.cookie
+
+# Set-Cookie headers (session creation)
+http.set_cookie
+
+# Session cookies (JSESSIONID)
+http.cookie contains "JSESSIONID"
+
+# ============================================
+# FIREBASE-RELATED TRAFFIC
+# ============================================
+
+# Firebase API calls
+http.host contains "firebase"
+
+# Firebase authentication
+http.request.uri contains "firebase" or http.host contains "firebaseapp.com"
+
+# Google services (Firebase uses Google)
+http.host contains "googleapis.com"
+
+# ============================================
+# SECURITY TESTING FILTERS
+# ============================================
+
+# CSRF testing - POST requests without referrer
+http.request.method == "POST" and !(http.referer)
+
+# Potential token leakage
+http.request.uri contains "token" or http.request.uri contains "Token"
+
+# Credentials in URL (should not happen)
+http.request.uri contains "password" or http.request.uri contains "Password"
+
+# Error responses (information disclosure)
+http.response.code == 500 or http.response.code == 400
+
+# ============================================
+# SESSION MANAGEMENT
+# ============================================
+
+# Session-related headers
+http.header contains "Session" or http.header contains "session"
+
+# Cookie security flags
+http.set_cookie contains "HttpOnly" or http.set_cookie contains "Secure"
+
+# Missing security flags (potential vulnerability)
+http.set_cookie and !(http.set_cookie contains "HttpOnly")
+
+# ============================================
+# DATA TRANSMISSION SECURITY
+# ============================================
+
+# HTTP (unencrypted) - should be minimal
+http and !(ssl or tls)
+
+# HTTPS traffic
+ssl or tls
+
+# Unencrypted authentication
+http and (http.header contains "Authorization" or http.cookie)
+
+# ============================================
+# TOTP SPECIFIC
+# ============================================
+
+# TOTP verification requests
+http.request.uri contains "verifyTotp" or http.request.uri contains "totp"
+
+# TOTP code in request
+http.request.uri contains "code" or frame contains "totpCode"
+
+# Temp token usage
+frame contains "tempToken"
+
+# ============================================
+# COMBINED FILTERS FOR SPECIFIC TESTS
+# ============================================
+
+# Complete login flow
+(http.request.uri contains "/api/sessionLogin" or http.request.uri contains "/api/verifyTotp") and http.request.method == "POST"
+
+# Authentication attempts
+http.request.method == "POST" and (http.request.uri contains "Login" or http.request.uri contains "login" or http.request.uri contains "auth")
+
+# All POST requests to API (CSRF testing)
+http.request.method == "POST" and http.request.uri contains "/api/"
+
+# Session creation
+http.set_cookie and http.response.code == 200
+
+# Failed authentication attempts
+http.request.uri contains "/api/sessionLogin" and http.response.code >= 400
+
+# Successful authentication
+http.request.uri contains "/api/sessionLogin" and http.response.code == 200
+
+# ============================================
+# NETWORK-LEVEL FILTERS
+# ============================================
+
+# Localhost traffic
+ip.addr == 127.0.0.1
+
+# Specific port (adjust to your application port)
+tcp.port == 8080
+
+# HTTP on specific port
+http and tcp.port == 8080
+
+# ============================================
+# TIMING ANALYSIS
+# ============================================
+
+# Slow responses (potential DoS or timing issues)
+frame.time_delta > 5
+
+# Rapid requests (potential brute force)
+frame.time_delta < 0.1
+
+# ============================================
+# EXPORT AND ANALYSIS
+# ============================================
+
+# All packets with authentication data
+http and (http.header contains "Authorization" or http.cookie or http.request.uri contains "/api/sessionLogin")
+
+# All API traffic for export
+http.request.uri contains "/api/"
+
+# All error responses for analysis
+http.response.code >= 400
+
+# ============================================
+# USAGE INSTRUCTIONS
+# ============================================
+# 
+# 1. Copy any filter above
+# 2. Paste into Wireshark's display filter bar (top of window)
+# 3. Press Enter to apply
+# 4. To combine filters, use: filter1 and filter2
+# 5. To exclude, use: filter1 and !(filter2)
+# 6. To save a filter: Analyze → Display Filters → New
+#
+# Example combinations:
+# - Login attempts with errors: http.request.uri contains "/api/sessionLogin" and http.response.code >= 400
+# - Unencrypted auth: http and !ssl and (http.header contains "Authorization")
+# - All POST to secure endpoints: http.request.method == "POST" and http.request.uri contains "/api/secure"
+
+

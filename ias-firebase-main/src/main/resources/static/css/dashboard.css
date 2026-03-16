@@ -1,0 +1,175 @@
+/* Dashboard – same colors as login (style.css) */
+
+.dashboard-body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    background-color: #f4f4f4;
+    color: #333;
+    display: block;
+}
+
+.dashboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    background-color: #fff;
+    border-bottom: 1px solid #ccc;
+}
+
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.brand-icon {
+    color: #4CAF50;
+    font-size: 1.25rem;
+}
+
+.header-brand h1 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.user-email {
+    font-size: 0.875rem;
+    color: #333;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.btn-logout {
+    padding: 10px 15px;
+    font-size: 16px;
+    font-family: inherit;
+    color: white;
+    background-color: #4CAF50;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-logout:hover {
+    background-color: #45a049;
+}
+
+.dashboard-main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+
+.welcome-section {
+    margin-bottom: 2rem;
+}
+
+.welcome-section h2 {
+    margin: 0 0 0.35rem 0;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.welcome-sub {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #555;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 1.25rem;
+    transition: border-color 0.3s;
+}
+
+.stat-card:hover {
+    border-color: #4CAF50;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #555;
+    margin-bottom: 0.35rem;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: #4CAF50;
+}
+
+.stat-desc {
+    display: block;
+    font-size: 0.8rem;
+    color: #555;
+    margin-top: 0.25rem;
+}
+
+.dashboard-card {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 1.5rem;
+}
+
+.dashboard-card h3 {
+    margin: 0 0 0.75rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.dashboard-card p {
+    margin: 0 0 1rem 0;
+    font-size: 0.9rem;
+    color: #555;
+    line-height: 1.5;
+}
+
+.secure-response {
+    padding: 1rem;
+    background-color: #f4f4f4;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 0.9rem;
+}
+
+.secure-response .loading {
+    color: #555;
+}
+
+.secure-response .success {
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.secure-response .error {
+    color: #c62828;
+}

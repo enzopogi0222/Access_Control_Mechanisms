@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | IAS Firebase</title>
+
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/dashboard.css?v=2">
+</head>
+
+<body class="dashboard-body">
+    <header class="dashboard-header">
+        <div class="header-brand">
+            <h1>IAS Dashboard</h1>
+        </div>
+        <div class="header-actions">
+           <span class="user-email" id="userEmail">—</span>
+            <button type="button" class="btn-logout" id="btnLogout">Sign out</button>
+        </div>
+    </header>
+
+    <main class="dashboard-main">
+        <section class="welcome-section">
+            <h2>Welcome to Dashboard!</h2>
+            <p class="welcome-sub">You're signed in. Here's your overview.</p>
+            <p th:unless="${totpEnrolled}"><a href="/setup-totp">Enable Two-Factor Authentication (Google Authenticator)</a></p>
+        </section>
+    </main>
+
+    <script defer src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script defer th:src="@{/js/dashboard.js}"></script>
+
+</body>
+</html>
