@@ -21,47 +21,45 @@ function register() {
   const result = document.getElementById("result");
   const registerBtn = document.getElementById("registerBtn");
 
-  result.innerText = "";
+  if (result) result.innerText = "";
 
   if (!email || !password || !confirmPassword) {
-    result.innerText = "All fields are required.";
+    if (result) result.innerText = "All fields are required.";
     return;
   }
 
   if (password !== confirmPassword) {
-    result.innerText = "Passwords do not match.";
+    if (result) result.innerText = "Passwords do not match.";
     return;
   }
 
-  // Basic password strength check can be enhanced
   if (password.length < 6) {
-    result.innerText = "Password must be at least 6 characters.";
+    if (result) result.innerText = "Password must be at least 6 characters.";
     return;
   }
 
-  registerBtn.disabled = true;
+  if (registerBtn) registerBtn.disabled = true;
 
   auth.createUserWithEmailAndPassword(email, password)
     .then((userCredential) => {
-      // Success
-      result.style.color = "green";
-      result.innerText = "Registration successful! Redirecting to login...";
-
+      if (result) {
+        result.style.color = "green";
+        result.innerText = "User registered successfully! Redirecting to dashboard...";
+      }
       setTimeout(() => {
-        window.location.href = "/index";
+        window.location.href = "/dashboard";
       }, 2000);
     })
     .catch((error) => {
-      registerBtn.disabled = false;
-      result.style.color = "red";
-      let message = "Registration error: " + error.message;
-
-      // Map common error codes if needed, or just use error.message
-      if (error.code === 'auth/email-already-in-use') {
-        message = "That email is already in use.";
+      if (registerBtn) registerBtn.disabled = false;
+      if (result) {
+        result.style.color = "red";
+        let message = "Registration error: " + error.message;
+        if (error.code === "auth/email-already-in-use") {
+          message = "That email is already in use.";
+        }
+        result.innerText = message;
       }
-
-      result.innerText = message;
       console.error(error);
     });
 }

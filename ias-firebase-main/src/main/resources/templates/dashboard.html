@@ -17,6 +17,7 @@
             <h1>IAS Dashboard</h1>
         </div>
         <div class="header-actions">
+           <span class="user-role-badge" th:classappend="${isAdmin ? 'role-admin' : 'role-user'}" th:text="${role}">user</span>
            <span class="user-email" id="userEmail">—</span>
             <button type="button" class="btn-logout" id="btnLogout">Sign out</button>
         </div>
@@ -25,8 +26,28 @@
     <main class="dashboard-main">
         <section class="welcome-section">
             <h2>Welcome to Dashboard!</h2>
-            <p class="welcome-sub">You're signed in. Here's your overview.</p>
+            <p class="welcome-sub">You're signed in as <strong th:text="${role}">user</strong>. Here's your overview.</p>
             <p th:unless="${totpEnrolled}"><a href="/setup-totp">Enable Two-Factor Authentication (Google Authenticator)</a></p>
+        </section>
+
+        <!-- User role: standard options only -->
+        <section class="dashboard-section" th:if="${!isAdmin}">
+            <h3>Your options</h3>
+            <ul class="dashboard-cards">
+                <li><a href="/setup-totp" th:if="${!totpEnrolled}">Enable 2FA (TOTP)</a><span th:if="${totpEnrolled}">2FA is enabled</span></li>
+                <li>View secure content and manage your account.</li>
+            </ul>
+        </section>
+
+        <!-- Admin role: registration, user management -->
+        <section class="dashboard-section dashboard-admin" th:if="${isAdmin}">
+            <h3>Admin</h3>
+            <ul class="dashboard-cards">
+                <li><a href="/register">Register new user</a></li>
+                <li><a href="/api/admin/roles" target="_blank">View roles (API)</a> — open in new tab or use Postman with your session</li>
+                <li th:if="${!totpEnrolled}"><a href="/setup-totp">Enable Two-Factor Authentication</a></li>
+                <li th:if="${totpEnrolled}">2FA is enabled</li>
+            </ul>
         </section>
     </main>
 

@@ -35,13 +35,13 @@ public class SecurityConfig {
                 .requestMatchers(
                         "/",
                         "/index",
-                        "/register",
                         "/css/**",
                         "/js/**",
                         "/favicon.ico",
                         "/api/sessionLogin",
                         "/api/verifyTotp"
                 ).permitAll()
+                .requestMatchers("/register", "/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/secure", "/api/totp/**").authenticated()
                 .anyRequest().authenticated()
             )

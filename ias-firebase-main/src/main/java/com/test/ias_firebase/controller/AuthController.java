@@ -5,7 +5,9 @@ import java.util.Map;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseToken;
+import com.test.ias_firebase.model.Role;
 import com.test.ias_firebase.service.TotpService;
+import com.test.ias_firebase.service.UserRoleService;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,11 +32,14 @@ public class AuthController {
 
     private final SecurityContextRepository securityContextRepository;
     private final TotpService totpService;
+    private final UserRoleService userRoleService;
 
     public AuthController(SecurityContextRepository securityContextRepository,
-                          TotpService totpService) {
+                          TotpService totpService,
+                          UserRoleService userRoleService) {
         this.securityContextRepository = securityContextRepository;
         this.totpService = totpService;
+        this.userRoleService = userRoleService;
     }
 
     @PostMapping("/sessionLogin")
@@ -57,11 +62,13 @@ public class AuthController {
                 ));
             }
 
+            userRoleService.ensureFirstUserIsAdmin(uid);
+            Role role = userRoleService.getRole(uid);
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
                             uid,
                             null,
-                            List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                            List.of(new SimpleGrantedAuthority(UserRoleService.toAuthority(role)))
                     );
 
             SecurityContext context = SecurityContextHolder.createEmptyContext();
@@ -98,11 +105,13 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
+        userRoleService.ensureFirstUserIsAdmin(uid);
+        Role role = userRoleService.getRole(uid);
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
                         uid,
                         null,
-                        List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                        List.of(new SimpleGrantedAuthority(UserRoleService.toAuthority(role)))
                 );
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(authentication);
