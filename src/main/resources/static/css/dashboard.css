@@ -232,3 +232,134 @@
 .dashboard-admin .dashboard-cards a {
     color: #1565c0;
 }
+
+/* DAC Files section */
+.dac-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+.dac-actions input {
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    min-width: 200px;
+}
+.btn-upload-file, .btn-list-files {
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+    font-family: inherit;
+    color: white;
+    background-color: #4CAF50;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.btn-upload-file:hover, .btn-list-files:hover { background-color: #45a049; }
+.dac-message { margin: 0.5rem 0; font-size: 0.9rem; }
+.dac-list-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+.dac-file-list {
+    margin: 0.5rem 0 0 0;
+    padding: 1rem;
+    background: #f8f8f8;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    max-height: 300px;
+    overflow: auto;
+}
+
+.dac-empty {
+    color: #616161;
+}
+
+.dac-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.dac-table th, .dac-table td {
+    padding: 0.6rem 0.5rem;
+    border-bottom: 1px solid #e0e0e0;
+    text-align: left;
+    vertical-align: top;
+}
+.dac-table th {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #555;
+}
+.dac-cell-meta {
+    color: #616161;
+    white-space: nowrap;
+}
+.dac-cell-id {
+    white-space: nowrap;
+}
+.dac-id {
+    font-size: 0.8rem;
+}
+.dac-copy {
+    margin-left: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+    border: 1px solid #cfd8dc;
+    background: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.dac-copy:hover {
+    border-color: #90caf9;
+}
+.dac-cell-actions {
+    text-align: right;
+    white-space: nowrap;
+}
+.dac-cell-share {
+    min-width: 220px;
+}
+.dac-share-wrap {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+}
+.dac-share-input {
+    width: 130px;
+    min-width: 130px;
+    padding: 0.35rem 0.45rem;
+    font-size: 0.85rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+.dac-share-btn {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.85rem;
+    border: 1px solid #90caf9;
+    background: #e3f2fd;
+    color: #1565c0;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+}
+.dac-share-btn:hover {
+    background: #bbdefb;
+}
+.dac-share-hint {
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: #616161;
+}
+.dac-download {
+    color: #1565c0;
+    text-decoration: none;
+    font-weight: 600;
+}
+.dac-download:hover {
+    text-decoration: underline;
+}

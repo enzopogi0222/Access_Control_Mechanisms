@@ -39,3 +39,6 @@ data/totp-secrets.json
 **/firebase-service-account.json
 **/*-service-account*.json
 **/serviceAccountKey.json
+
+### Uploaded files (local storage) ###
+uploads/

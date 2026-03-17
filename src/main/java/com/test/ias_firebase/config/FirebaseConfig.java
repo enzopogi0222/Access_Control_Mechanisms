@@ -4,6 +4,8 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
@@ -17,6 +19,8 @@ import java.nio.file.Path;
 @Configuration
 public class FirebaseConfig {
 
+    private static final Logger log = LoggerFactory.getLogger(FirebaseConfig.class);
+
     @Value("${app.firebase.service-account-path:}")
     private String serviceAccountPath;
 
@@ -24,10 +28,11 @@ public class FirebaseConfig {
     public void init() throws IOException {
         InputStream serviceAccount = openServiceAccountStream();
         if (serviceAccount == null) {
-            throw new RuntimeException(
-                    "Firebase service account file not found. Set app.firebase.service-account-path in application.properties "
-                    + "to the path of your serviceAccountKey.json (e.g. path/to/serviceAccountKey.json), or place "
-                    + "firebase-service-account.json in src/main/resources/.");
+            log.warn(
+                    "Firebase service account file not found. Auth will not work until you set app.firebase.service-account-path "
+                    + "in application.properties to your serviceAccountKey.json, or place firebase-service-account.json in "
+                    + "src/main/resources/.");
+            return;
         }
 
         try (InputStream stream = serviceAccount) {
