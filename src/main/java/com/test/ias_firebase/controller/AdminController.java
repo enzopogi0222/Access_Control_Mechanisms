@@ -76,18 +76,21 @@ public class AdminController {
         if (level == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid clearance: " + levelStr));
         }
-        String uid = resolveUidIfEmail(uidOrEmail);
-        userClearanceService.setClearance(uid, level);
-        return ResponseEntity.ok(Map.of("uid", uid, "clearance", level.name()));
+        ResolvedUser resolved = resolveUidIfEmail(uidOrEmail);
+        if (resolved.email() != null) userClearanceService.setClearanceByEmail(resolved.email(), resolved.uid(), level);
+        else userClearanceService.setClearance(resolved.uid(), level);
+        return ResponseEntity.ok(Map.of("uid", resolved.uid(), "clearance", level.name()));
     }
 
-    private static String resolveUidIfEmail(String uidOrEmail) {
+    private record ResolvedUser(String uid, String email) {}
+
+    private static ResolvedUser resolveUidIfEmail(String uidOrEmail) {
         String value = uidOrEmail == null ? null : uidOrEmail.trim();
-        if (value == null || value.isBlank()) return value;
-        if (!value.contains("@")) return value;
+        if (value == null || value.isBlank()) return new ResolvedUser(value, null);
+        if (!value.contains("@")) return new ResolvedUser(value, null);
         try {
             UserRecord record = FirebaseAuth.getInstance().getUserByEmail(value);
-            return record.getUid();
+            return new ResolvedUser(record.getUid(), value);
         } catch (Exception e) {
             throw new org.springframework.web.server.ResponseStatusException(
                     org.springframework.http.HttpStatus.BAD_REQUEST,

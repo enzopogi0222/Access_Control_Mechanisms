@@ -1,5 +1,16 @@
 package com.test.ias_firebase.model;
 
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Table;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,7 +19,10 @@ import java.util.List;
  * Web DAC model: a resource owned by one user, with optional allowed users (ACL).
  * Used by FileResourceController to enforce discretionary access on /api/files.
  */
+@Entity
+@Table(name = "file_resources")
 public class FileResource {
+    @Id
     private String id;
     private String filename;
     private String storedFilename;
@@ -16,7 +30,13 @@ public class FileResource {
     private long sizeBytes;
     private Instant uploadedAt;
     private String ownerEmail;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "file_resource_acl", joinColumns = @JoinColumn(name = "file_id"))
+    @Column(name = "allowed_uid")
     private List<String> allowedUsers = new ArrayList<>();
+
+    @Enumerated(EnumType.STRING)
     private SecurityLevel classification = SecurityLevel.PUBLIC;
 
     public String getId() {

@@ -12,7 +12,13 @@ if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
 
+// Use the default app for the *current* signed-in user.
 const auth = firebase.auth();
+// Use a secondary app to create new users without switching the current session.
+const secondaryApp = firebase.apps.find(a => a && a.name === "secondary")
+  ? firebase.app("secondary")
+  : firebase.initializeApp(firebaseConfig, "secondary");
+const secondaryAuth = secondaryApp.auth();
 
 function register() {
   const email = document.getElementById("email").value.trim();
@@ -40,11 +46,12 @@ function register() {
 
   if (registerBtn) registerBtn.disabled = true;
 
-  auth.createUserWithEmailAndPassword(email, password)
-    .then((userCredential) => {
+  secondaryAuth.createUserWithEmailAndPassword(email, password)
+    .then(() => secondaryAuth.signOut())
+    .then(() => {
       if (result) {
         result.style.color = "green";
-        result.innerText = "User registered successfully! Redirecting to dashboard...";
+        result.innerText = "User registered successfully! Returning to dashboard...";
       }
       setTimeout(() => {
         window.location.href = "/dashboard";
