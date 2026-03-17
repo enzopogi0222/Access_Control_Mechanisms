@@ -1,6 +1,7 @@
 package com.test.ias_firebase.service;
 
 import com.test.ias_firebase.model.FileResource;
+import com.test.ias_firebase.model.SecurityLevel;
 import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -20,9 +21,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class FileResourceService {
     private final Map<String, FileResource> store = new ConcurrentHashMap<>();
     private final Path storageDir;
+    private final MacPolicyService macPolicyService;
 
-    public FileResourceService(@Value("${app.files.storage-dir:uploads}") String storageDir) {
+    public FileResourceService(@Value("${app.files.storage-dir:uploads}") String storageDir,
+                               MacPolicyService macPolicyService) {
         this.storageDir = Path.of(storageDir).toAbsolutePath().normalize();
+        this.macPolicyService = macPolicyService;
         try {
             Files.createDirectories(this.storageDir);
         } catch (IOException e) {
@@ -30,29 +34,34 @@ public class FileResourceService {
         }
     }
 
-    public FileResource create(String filename, String ownerIdentifier) {
+    public FileResource create(String filename, String ownerIdentifier, SecurityLevel classification) {
         if (filename == null || filename.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "filename is required");
         }
         if (ownerIdentifier == null || ownerIdentifier.isBlank()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not authenticated");
         }
+        SecurityLevel effective = (classification != null) ? classification : SecurityLevel.PUBLIC;
+        macPolicyService.enforceCanCreateFileWithLabel(ownerIdentifier, effective);
 
         FileResource file = new FileResource();
         file.setId(UUID.randomUUID().toString());
         file.setFilename(filename);
         file.setOwnerEmail(ownerIdentifier);
+        file.setClassification(effective);
         store.put(file.getId(), file);
         return file;
     }
 
-    public FileResource upload(MultipartFile multipartFile, String ownerIdentifier) {
+    public FileResource upload(MultipartFile multipartFile, String ownerIdentifier, SecurityLevel classification) {
         if (multipartFile == null || multipartFile.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "file is required");
         }
         if (ownerIdentifier == null || ownerIdentifier.isBlank()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not authenticated");
         }
+        SecurityLevel effective = (classification != null) ? classification : SecurityLevel.PUBLIC;
+        macPolicyService.enforceCanCreateFileWithLabel(ownerIdentifier, effective);
 
         String originalName = sanitizeOriginalFilename(multipartFile.getOriginalFilename());
         if (originalName == null || originalName.isBlank()) {
@@ -79,6 +88,7 @@ public class FileResourceService {
         file.setSizeBytes(multipartFile.getSize());
         file.setUploadedAt(Instant.now());
         file.setOwnerEmail(ownerIdentifier);
+        file.setClassification(effective);
         store.put(file.getId(), file);
         return file;
     }
@@ -86,12 +96,14 @@ public class FileResourceService {
     public FileResource getForRead(String id, String userIdentifier) {
         FileResource file = getById(id);
         enforceDac(file, userIdentifier);
+        macPolicyService.enforceCanReadFile(userIdentifier, file);
         return file;
     }
 
     public Path getPathForDownload(String id, String userIdentifier) {
         FileResource file = getById(id);
         enforceDac(file, userIdentifier);
+        macPolicyService.enforceCanReadFile(userIdentifier, file);
         if (file.getStoredFilename() == null || file.getStoredFilename().isBlank()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "File content not found");
         }
@@ -109,7 +121,10 @@ public class FileResourceService {
         List<FileResource> out = new ArrayList<>();
         for (FileResource f : store.values()) {
             if (ownerIdentifier.equals(f.getOwnerEmail())) {
-                out.add(f);
+                // For demo simplicity: still apply MAC to listing.
+                if (macPolicyService.clearanceOf(ownerIdentifier).atLeast(f.getClassification())) {
+                    out.add(f);
+                }
             }
         }
         out.sort(Comparator.comparing(FileResource::getFilename, Comparator.nullsLast(String::compareToIgnoreCase)));
@@ -124,7 +139,9 @@ public class FileResourceService {
         List<FileResource> out = new ArrayList<>();
         for (FileResource f : store.values()) {
             if (f.getAllowedUsers() != null && f.getAllowedUsers().contains(userIdentifier)) {
-                out.add(f);
+                if (macPolicyService.clearanceOf(userIdentifier).atLeast(f.getClassification())) {
+                    out.add(f);
+                }
             }
         }
         out.sort(Comparator.comparing(FileResource::getFilename, Comparator.nullsLast(String::compareToIgnoreCase)));
@@ -142,6 +159,13 @@ public class FileResourceService {
         if (!file.getAllowedUsers().contains(allowedUserIdentifier)) {
             file.getAllowedUsers().add(allowedUserIdentifier);
         }
+        return file;
+    }
+
+    public FileResource relabel(String id, String uid, boolean isAdmin, SecurityLevel newClassification) {
+        FileResource file = getById(id);
+        macPolicyService.enforceCanRelabel(uid, isAdmin, file, newClassification);
+        file.setClassification(newClassification);
         return file;
     }
 

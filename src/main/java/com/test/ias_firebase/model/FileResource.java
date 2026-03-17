@@ -17,6 +17,7 @@ public class FileResource {
     private Instant uploadedAt;
     private String ownerEmail;
     private List<String> allowedUsers = new ArrayList<>();
+    private SecurityLevel classification = SecurityLevel.PUBLIC;
 
     public String getId() {
         return id;
@@ -85,5 +86,13 @@ public class FileResource {
 
         
         this.allowedUsers = allowedUsers != null ? allowedUsers : new ArrayList<>();
+    }
+
+    public SecurityLevel getClassification() {
+        return classification;
+    }
+
+    public void setClassification(SecurityLevel classification) {
+        this.classification = (classification != null) ? classification : SecurityLevel.PUBLIC;
     }
 }

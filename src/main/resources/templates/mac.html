@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAC | IAS Firebase</title>
+
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/dashboard.css?v=2">
+</head>
+
+<body class="dashboard-body">
+<header class="dashboard-header">
+    <div class="header-brand">
+        <h1>MAC</h1>
+    </div>
+    <div class="header-actions">
+        <a class="btn-list-files" href="/dashboard" style="text-decoration:none;">Back to dashboard</a>
+        <span class="user-role-badge" th:classappend="${isAdmin ? 'role-admin' : 'role-user'}" th:text="${role}">user</span>
+        <span class="user-email" id="userEmail">—</span>
+        <button type="button" class="btn-logout" id="btnLogout">Sign out</button>
+    </div>
+</header>
+
+<main class="dashboard-main">
+    <section class="welcome-section">
+        <h2>Mandatory Access Control (Web-app)</h2>
+        <p class="welcome-sub">Classification labels + user clearance are enforced on the server. Sharing (DAC) cannot override MAC.</p>
+        <p th:unless="${totpEnrolled}"><a href="/setup-totp">Enable Two-Factor Authentication (Google Authenticator)</a></p>
+    </section>
+
+    <section class="dashboard-section">
+        <h3>Your clearance</h3>
+        <p id="macMe" class="welcome-sub">Loading…</p>
+        <button type="button" class="btn-list-files" id="btnRefreshMe">Refresh</button>
+    </section>
+
+    <section class="dashboard-section">
+        <h3>Create/upload (with classification)</h3>
+        <div class="dac-actions" style="gap:12px; align-items:center;">
+            <select id="macClassification">
+                <option value="PUBLIC">PUBLIC</option>
+                <option value="INTERNAL">INTERNAL</option>
+                <option value="CONFIDENTIAL">CONFIDENTIAL</option>
+                <option value="SECRET">SECRET</option>
+            </select>
+            <input type="file" id="macFileUpload"/>
+            <button type="button" class="btn-upload-file" id="btnMacUpload">Upload with label</button>
+        </div>
+        <p id="macUploadMessage" class="dac-message"></p>
+    </section>
+
+    <section class="dashboard-section">
+        <h3>Try access (read/download)</h3>
+        <p class="welcome-sub">Paste a File ID, then try to read metadata or download. If clearance is too low, you’ll get 403 and an audit event.</p>
+        <div class="dac-actions" style="gap:12px; align-items:center;">
+            <input type="text" id="macFileId" placeholder="File ID"/>
+            <button type="button" class="btn-list-files" id="btnMacRead">Read metadata</button>
+            <a class="dac-download" id="macDownloadLink" href="#" target="_blank" rel="noreferrer">Download</a>
+        </div>
+        <pre id="macReadResult" style="white-space:pre-wrap; background:#0f172a; color:#e2e8f0; padding:12px; border-radius:10px; overflow:auto;"></pre>
+    </section>
+
+    <section class="dashboard-section" th:if="${isAdmin}">
+        <h3>Admin: set clearance + view audit</h3>
+        <p class="welcome-sub">Set a user’s clearance (UID → level), then refresh “Your clearance” and try reading labeled resources.</p>
+        <div class="dac-actions" style="gap:12px; align-items:center; flex-wrap:wrap;">
+            <input type="text" id="adminTargetUid" placeholder="Target UID or email"/>
+            <select id="adminClearance">
+                <option value="PUBLIC">PUBLIC</option>
+                <option value="INTERNAL">INTERNAL</option>
+                <option value="CONFIDENTIAL">CONFIDENTIAL</option>
+                <option value="SECRET">SECRET</option>
+            </select>
+            <button type="button" class="btn-list-files" id="btnSetClearance">Set clearance</button>
+            <button type="button" class="btn-list-files" id="btnLoadAudit">Load audit</button>
+        </div>
+        <p id="adminMessage" class="dac-message"></p>
+        <pre id="adminAudit" style="white-space:pre-wrap; background:#0f172a; color:#e2e8f0; padding:12px; border-radius:10px; overflow:auto;"></pre>
+    </section>
+</main>
+
+<script defer src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script defer th:src="@{/js/mac.js}"></script>
+
+</body>
+</html>
+

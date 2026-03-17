@@ -30,6 +30,7 @@
         <div id="totpStep" class="totp-step" style="display: none;">
             <h3>Two-Factor Authentication</h3>
             <p>Enter the 6-digit code from Google Authenticator.</p>
+            <div id="totpResult" class="login-result" aria-live="polite"></div>
             <input type="text" id="totpCode" placeholder="000000" maxlength="6" pattern="[0-9]*" inputmode="numeric" autocomplete="one-time-code">
             <button type="button" id="verifyTotpBtn">Verify</button>
         </div>

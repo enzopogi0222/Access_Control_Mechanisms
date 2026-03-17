@@ -3,6 +3,7 @@ package com.test.ias_firebase.controller;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.UserRecord;
 import com.test.ias_firebase.model.FileResource;
+import com.test.ias_firebase.model.SecurityLevel;
 import com.test.ias_firebase.service.FileResourceService;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -43,7 +44,8 @@ public class FileResourceController {
                                                @RequestBody Map<String, String> body) {
         String user = authentication != null ? authentication.getName() : null;
         String filename = body != null ? body.get("filename") : null;
-        FileResource created = fileResourceService.create(filename, user);
+        SecurityLevel classification = SecurityLevel.parseOrDefault(body != null ? body.get("classification") : null, SecurityLevel.PUBLIC);
+        FileResource created = fileResourceService.create(filename, user, classification);
         return ResponseEntity.ok(created);
     }
 
@@ -54,9 +56,11 @@ public class FileResourceController {
      */
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<FileResource> upload(Authentication authentication,
-                                               @RequestPart("file") MultipartFile file) {
+                                               @RequestPart("file") MultipartFile file,
+                                               @RequestParam(name = "classification", required = false) String classification) {
         String user = authentication != null ? authentication.getName() : null;
-        return ResponseEntity.ok(fileResourceService.upload(file, user));
+        SecurityLevel level = SecurityLevel.parseOrDefault(classification, SecurityLevel.PUBLIC);
+        return ResponseEntity.ok(fileResourceService.upload(file, user, level));
     }
 
     /**
@@ -130,6 +134,26 @@ public class FileResourceController {
         String allowedUser = body != null ? body.get("allowedUser") : null;
         String allowedUid = resolveUidIfEmail(allowedUser);
         return ResponseEntity.ok(fileResourceService.shareWithUser(id, user, allowedUid));
+    }
+
+    /**
+     * MAC: admin-only relabel (classification).
+     *
+     * Body: { "classification": "CONFIDENTIAL" }
+     */
+    @PostMapping("/{id}/label")
+    public ResponseEntity<FileResource> relabel(Authentication authentication,
+                                                @PathVariable String id,
+                                                @RequestBody Map<String, String> body) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not authenticated");
+        }
+        String uid = authentication.getName();
+        boolean isAdmin = authentication.getAuthorities() != null &&
+                authentication.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+
+        SecurityLevel newLevel = SecurityLevel.parseOrDefault(body != null ? body.get("classification") : null, SecurityLevel.PUBLIC);
+        return ResponseEntity.ok(fileResourceService.relabel(id, uid, isAdmin, newLevel));
     }
 
     private static String resolveUidIfEmail(String allowedUser) {

@@ -42,7 +42,7 @@ public class SecurityConfig {
                         "/api/verifyTotp"
                 ).permitAll()
                 .requestMatchers("/register", "/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/secure", "/api/totp/**").authenticated()
+                .requestMatchers("/api/secure", "/api/totp/**", "/api/mac/**").authenticated()
                 .anyRequest().authenticated()
             )
 
