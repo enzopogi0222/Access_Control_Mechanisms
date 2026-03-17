@@ -1,6 +1,5 @@
 package com.test.ias_firebase.service;
 
-import com.test.ias_firebase.model.SecurityLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -25,8 +24,8 @@ public class AuditLogService {
             String action,
             String resourceType,
             String resourceId,
-            SecurityLevel resourceClassification,
-            SecurityLevel userClearance,
+            String resourceClassification,
+            String userClearance,
             boolean allowed,
             String reason
     ) {}
@@ -52,8 +51,8 @@ public class AuditLogService {
                        String action,
                        String resourceType,
                        String resourceId,
-                       SecurityLevel classification,
-                       SecurityLevel clearance,
+                       String classification,
+                       String clearance,
                        boolean allowed,
                        String reason) {
         record(new AuditEvent(
@@ -62,8 +61,8 @@ public class AuditLogService {
                 action,
                 resourceType,
                 resourceId,
-                classification,
-                clearance,
+                classification != null ? classification : "-",
+                clearance != null ? clearance : "-",
                 allowed,
                 reason
         ));
@@ -86,8 +85,8 @@ public class AuditLogService {
                     "action", e.action(),
                     "resourceType", e.resourceType(),
                     "resourceId", e.resourceId(),
-                    "classification", String.valueOf(e.resourceClassification()),
-                    "clearance", String.valueOf(e.userClearance()),
+                    "classification", e.resourceClassification() != null ? e.resourceClassification() : "-",
+                    "clearance", e.userClearance() != null ? e.userClearance() : "-",
                     "allowed", e.allowed(),
                     "reason", e.reason()
             ));

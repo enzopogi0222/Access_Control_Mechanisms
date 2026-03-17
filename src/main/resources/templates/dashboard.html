@@ -30,28 +30,6 @@
             <p th:unless="${totpEnrolled}"><a href="/setup-totp">Enable Two-Factor Authentication (Google Authenticator)</a></p>
         </section>
 
-     
-        <section class="dashboard-section">
-            <h3>MAC — Mandatory Access Control</h3>
-            <a class="btn-list-files" href="/mac" style="text-decoration:none;">Open MAC page</a>
-        </section>
-
-        <!-- DAC: File resources (all authenticated users) -->
-        <section class="dashboard-section">
-            <h3>DAC — My files</h3>
-            <p class="welcome-sub">Upload and list files. Only you (owner) can download yours unless you share.</p>
-            <div class="dac-actions">
-                <input type="file" id="dacFileUpload" />
-                <button type="button" class="btn-upload-file" id="btnUploadFile">Upload file</button>
-            </div>
-            <p id="dacMessage" class="dac-message"></p>
-            <div class="dac-list-actions">
-                <button type="button" class="btn-list-files" id="btnListFiles">List my files</button>
-                <button type="button" class="btn-list-files" id="btnListSharedFiles">List shared with me</button>
-            </div>
-            <div id="dacFileList" class="dac-file-list"></div>
-        </section>
-
         <!-- User role: standard options only -->
         <section class="dashboard-section" th:if="${!isAdmin}">
             <h3>Your options</h3>
