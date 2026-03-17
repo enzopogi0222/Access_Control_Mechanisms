@@ -54,7 +54,7 @@ function login() {
 
 function verifyTotp() {
     const code = document.getElementById("totpCode").value.trim();
-    const resultEl = document.getElementById("result");
+    const resultEl = document.getElementById("totpResult") || document.getElementById("result");
     if (resultEl) resultEl.innerText = "";
     if (!pendingTempToken || code.length !== 6) {
         if (resultEl) resultEl.innerText = "Please enter the 6-digit code.";
@@ -66,11 +66,26 @@ function verifyTotp() {
         body: JSON.stringify({ tempToken: pendingTempToken, code: code })
     })
         .then(res => {
-            if (!res.ok) throw new Error("Invalid code");
-            window.location.href = "/dashboard";
+            if (res.ok) {
+                window.location.href = "/dashboard";
+                return;
+            }
+
+            if (res.status === 401) {
+                throw new Error("Unauthorized");
+            }
+
+            throw new Error("Invalid code");
         })
-        .catch(() => {
-            if (resultEl) resultEl.innerText = "Invalid code. Try again.";
+        .catch((err) => {
+            if (!resultEl) return;
+
+            if (err && err.message === "Unauthorized") {
+                resultEl.innerText = "Your code is invalid or expired . Please try again, or log in again.";
+                return;
+            }
+
+            resultEl.innerText = "Invalid code. Try again.";
         });
 }
 
