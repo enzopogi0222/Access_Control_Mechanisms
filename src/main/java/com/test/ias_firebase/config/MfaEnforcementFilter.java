@@ -17,11 +17,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
- * Enforces MFA (TOTP enrollment) for sensitive routes.
+ * Enforces MFA (TOTP enrollment).
  *
  * Current policy:
- * - Any authenticated user must be TOTP-enrolled to access /api/admin/** and /register
- * - Enrollment endpoints remain accessible so users can enroll ( /setup-totp, /api/totp/** )
+ * - Any authenticated user must be TOTP-enrolled to access any authenticated route,
+ *   except the TOTP enrollment endpoints/pages (so users can enroll).
  */
 @Component
 public class MfaEnforcementFilter extends OncePerRequestFilter {
@@ -38,12 +38,19 @@ public class MfaEnforcementFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         if (path == null) return true;
 
-        // Let users reach enrollment flows even if MFA is required elsewhere.
+        // Always allow unauthenticated/static paths.
+        if (path.equals("/") || path.equals("/index")) return true;
+        if (path.startsWith("/css/") || path.startsWith("/js/") || path.equals("/favicon.ico")) return true;
+
+        // Let users reach the MFA enrollment flows even when MFA is mandatory.
         if (path.equals("/setup-totp")) return true;
         if (path.startsWith("/api/totp/")) return true;
 
-        // Only enforce on specific sensitive routes.
-        return !(path.startsWith("/api/admin/") || path.equals("/register"));
+        // Allow login endpoints; MFA enforcement happens after authentication exists.
+        if (path.equals("/api/sessionLogin") || path.equals("/api/verifyTotp")) return true;
+
+        // Enforce on everything else (but only for authenticated + not-enrolled users).
+        return false;
     }
 
     @Override
