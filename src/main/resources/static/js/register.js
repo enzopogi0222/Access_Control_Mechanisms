@@ -24,6 +24,8 @@ function register() {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
   const confirmPassword = document.getElementById("confirmPassword").value;
+  const roleEl = document.getElementById("role");
+  const role = roleEl ? roleEl.value : "user";
   const result = document.getElementById("result");
   const registerBtn = document.getElementById("registerBtn");
 
@@ -46,12 +48,39 @@ function register() {
 
   if (registerBtn) registerBtn.disabled = true;
 
+  let createdUid = null;
+
   secondaryAuth.createUserWithEmailAndPassword(email, password)
-    .then(() => secondaryAuth.signOut())
+    .then((userCredential) => {
+      createdUid = userCredential && userCredential.user ? userCredential.user.uid : null;
+      return secondaryAuth.signOut();
+    })
+    .then(() => {
+      if (!createdUid) {
+        throw new Error("Registration succeeded but UID was not returned.");
+      }
+      return fetch("/api/admin/roles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ uid: createdUid, role: role })
+      });
+    })
+    .then(async (res) => {
+      if (!res.ok) {
+        let errText = "Failed to assign role.";
+        try {
+          const data = await res.json();
+          if (data && data.error) errText = data.error;
+        } catch (_) {}
+        throw new Error(errText);
+      }
+      return res.json().catch(() => ({}));
+    })
     .then(() => {
       if (result) {
         result.style.color = "green";
-        result.innerText = "User registered successfully! Returning to dashboard...";
+        result.innerText = `User registered successfully as ${role}! Returning to dashboard...`;
       }
       setTimeout(() => {
         window.location.href = "/dashboard";

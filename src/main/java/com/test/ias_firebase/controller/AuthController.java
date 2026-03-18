@@ -6,6 +6,7 @@ import java.util.Map;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseToken;
 import com.test.ias_firebase.model.Role;
+import com.test.ias_firebase.service.MfaAuditService;
 import com.test.ias_firebase.service.TotpService;
 import com.test.ias_firebase.service.UserRoleService;
 
@@ -33,13 +34,16 @@ public class AuthController {
     private final SecurityContextRepository securityContextRepository;
     private final TotpService totpService;
     private final UserRoleService userRoleService;
+    private final MfaAuditService mfaAuditService;
 
     public AuthController(SecurityContextRepository securityContextRepository,
                           TotpService totpService,
-                          UserRoleService userRoleService) {
+                          UserRoleService userRoleService,
+                          MfaAuditService mfaAuditService) {
         this.securityContextRepository = securityContextRepository;
         this.totpService = totpService;
         this.userRoleService = userRoleService;
+        this.mfaAuditService = mfaAuditService;
     }
 
     @PostMapping("/sessionLogin")
@@ -56,6 +60,13 @@ public class AuthController {
 
             if (totpService.isEnrolled(uid)) {
                 String tempToken = totpService.createTempToken(uid);
+                mfaAuditService.record(
+                        request,
+                        MfaAuditService.EventType.MFA_CHALLENGE_REQUIRED,
+                        uid,
+                        "User enrolled in TOTP; challenge required",
+                        Map.of("tempTokenIssued", true)
+                );
                 return ResponseEntity.ok(Map.of(
                     "totpRequired", true,
                     "tempToken", tempToken
@@ -91,19 +102,47 @@ public class AuthController {
         String tempToken = body.get("tempToken");
         String codeStr = body.get("code");
         if (tempToken == null || codeStr == null || codeStr.length() != 6) {
+            mfaAuditService.record(
+                    request,
+                    MfaAuditService.EventType.MFA_VERIFY_FAILURE,
+                    null,
+                    "Malformed request",
+                    Map.of("hasTempToken", tempToken != null, "codeLength", codeStr != null ? codeStr.length() : -1)
+            );
             return ResponseEntity.badRequest().build();
         }
         int code;
         try {
             code = Integer.parseInt(codeStr);
         } catch (NumberFormatException e) {
+            mfaAuditService.record(
+                    request,
+                    MfaAuditService.EventType.MFA_VERIFY_FAILURE,
+                    null,
+                    "Non-numeric code",
+                    Map.of("codeLength", codeStr.length())
+            );
             return ResponseEntity.badRequest().build();
         }
 
         String uid = totpService.verifyAndConsumeTempToken(tempToken, code);
         if (uid == null) {
+            mfaAuditService.record(
+                    request,
+                    MfaAuditService.EventType.MFA_VERIFY_FAILURE,
+                    null,
+                    "Invalid/expired temp token or invalid code",
+                    Map.of("tempTokenPresent", true)
+            );
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+
+        mfaAuditService.record(
+                request,
+                MfaAuditService.EventType.MFA_VERIFY_SUCCESS,
+                uid,
+                "TOTP verified"
+        );
 
         userRoleService.ensureFirstUserIsAdmin(uid);
         Role role = userRoleService.getRole(uid);
@@ -139,6 +178,7 @@ public class AuthController {
 
     @PostMapping("/totp/confirm")
     public ResponseEntity<?> totpConfirm(Authentication authentication,
+                                         HttpServletRequest request,
                                          @RequestBody Map<String, String> body) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -146,17 +186,43 @@ public class AuthController {
         String uid = authentication.getName();
         String codeStr = body.get("code");
         if (codeStr == null || codeStr.length() != 6) {
+            mfaAuditService.record(
+                    request,
+                    MfaAuditService.EventType.MFA_ENROLL_FAILURE,
+                    uid,
+                    "Malformed enrollment confirm request",
+                    Map.of("codeLength", codeStr != null ? codeStr.length() : -1)
+            );
             return ResponseEntity.badRequest().build();
         }
         int code;
         try {
             code = Integer.parseInt(codeStr);
         } catch (NumberFormatException e) {
+            mfaAuditService.record(
+                    request,
+                    MfaAuditService.EventType.MFA_ENROLL_FAILURE,
+                    uid,
+                    "Non-numeric enrollment code",
+                    Map.of("codeLength", codeStr.length())
+            );
             return ResponseEntity.badRequest().build();
         }
         if (!totpService.confirmSetup(uid, code)) {
+            mfaAuditService.record(
+                    request,
+                    MfaAuditService.EventType.MFA_ENROLL_FAILURE,
+                    uid,
+                    "Invalid enrollment confirmation code"
+            );
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Invalid code"));
         }
+        mfaAuditService.record(
+                request,
+                MfaAuditService.EventType.MFA_ENROLL_SUCCESS,
+                uid,
+                "TOTP enrollment confirmed"
+        );
         return ResponseEntity.ok().build();
     }
 

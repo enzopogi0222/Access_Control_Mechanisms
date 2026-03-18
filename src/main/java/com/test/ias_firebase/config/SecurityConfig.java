@@ -12,9 +12,12 @@ import org.springframework.security.web.context.SecurityContextRepository;
 public class SecurityConfig {
 
     private final FirebaseAuthenticationFilter firebaseAuthenticationFilter;
+    private final MfaEnforcementFilter mfaEnforcementFilter;
 
-    public SecurityConfig(FirebaseAuthenticationFilter firebaseAuthenticationFilter) {
+    public SecurityConfig(FirebaseAuthenticationFilter firebaseAuthenticationFilter,
+                          MfaEnforcementFilter mfaEnforcementFilter) {
         this.firebaseAuthenticationFilter = firebaseAuthenticationFilter;
+        this.mfaEnforcementFilter = mfaEnforcementFilter;
     }
 
     @Bean
@@ -47,7 +50,8 @@ public class SecurityConfig {
             )
 
             .addFilterBefore(firebaseAuthenticationFilter,
-                    org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
+                    org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(mfaEnforcementFilter, FirebaseAuthenticationFilter.class);
 
         return http.build();
     }
